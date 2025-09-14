@@ -13,4 +13,5 @@ if categorical_cols:
     df = pd.get_dummies(df, columns=categorical_cols)
 
 df["distance"] = np.sqrt((df['X'] - 1)**2 + (df['Y'] - 0.5)**2)
+print(df.info())
 print(df["distance"].describe())

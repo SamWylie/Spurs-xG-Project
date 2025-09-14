@@ -2,8 +2,8 @@ import model
 import features
 import torch
 import torch.nn as nn
-import numpy as np
 import pandas as pd
+from sklearn.metrics import log_loss, roc_auc_score, brier_score_loss
 
 torch.manual_seed(42)
 model = model.Model()
@@ -43,17 +43,20 @@ for j in range(epochs):
     loss.backward()
     optimizer.step()
     
-sample_X = pd.read_csv('data/processed_X.csv').head(5).values
-sample_X_tensor = torch.FloatTensor(sample_X)
-
-# Set model to evaluation mode
 model.eval()
 with torch.no_grad():
-    logits = model(sample_X_tensor)
-    xg_pred = torch.sigmoid(logits)  # Convert logits to probabilities
+    test_logits = model(testX)
+    test_probs = torch.sigmoid(test_logits).numpy().flatten()
+    testY_np = testY.numpy().flatten()
 
-print("Predicted xG values for 5 sample shots:")
-print(xg_pred.numpy().flatten())
+
+ll = log_loss(testY_np, test_probs)
+roc_auc = roc_auc_score(testY_np, test_probs)
+brier = brier_score_loss(testY_np, test_probs)
+
+print(f'Log Loss: {ll:.4f}')
+print(f'ROC AUC: {roc_auc:.4f}')
+print(f'Brier Score: {brier:.4f}')
 
 
 

@@ -16,7 +16,7 @@ print(predictions[0:10])
 final_df = testX.copy()
 final_df['goal_probability'] = predictions
 
-final_df.iloc[830]
+print(final_df.iloc[830])
 print(final_df.sort_values(by='goal_probability', ascending=False).head())
 
 logloss = log_loss(testY, predictions)
