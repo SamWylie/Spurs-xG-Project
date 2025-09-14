@@ -13,7 +13,7 @@ class Model(nn.Module):
         self.fc2 = nn.Linear(h1, h2)
         self.fc3 = nn.Linear(h2, h3)
         self.out = nn.Linear(h3, out_features)
-
+    
     def forward(self, x):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))

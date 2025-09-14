@@ -2,7 +2,6 @@ import model
 import features
 import torch
 import torch.nn as nn
-import pandas as pd
 from sklearn.metrics import log_loss, roc_auc_score, brier_score_loss
 
 torch.manual_seed(42)
@@ -20,10 +19,14 @@ testX = torch.FloatTensor(testX)
 testY = torch.FloatTensor(testY).unsqueeze(1)
 
 criterion = nn.BCEWithLogitsLoss() #binary cross entropy loss
-optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.05)
+
 
 epochs = 1000
 losses = []
+best_loss = float('inf')
+patience = 20
+counter = 0
 for j in range(epochs):
     # go forward and get a prediction
     y_pred = model.forward(trainX) # get predicted results
@@ -35,28 +38,25 @@ for j in range(epochs):
     losses.append(loss.detach().numpy())
 
     #print every hundred run throughs
-    if j % 100 == 0:
-        print(f'Epoch: {j} and loss: {loss}')
+    # if j % 100 == 0:
+    #     print(f'Epoch: {j} and loss: {loss}')
 
     # Do some back propagation: take the error rate of forward propagation and feed it nack through the network to fine tune the weights
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
-    
-model.eval()
-with torch.no_grad():
-    test_logits = model(testX)
-    test_probs = torch.sigmoid(test_logits).numpy().flatten()
-    testY_np = testY.numpy().flatten()
 
+    if loss.item() < best_loss:
+        best_loss = loss.item()
+        counter = 0
+        best_model_state = model.state_dict()
+    else:
+        counter += 1
+        if counter >= patience:
+            print(f"Early stopping at epoch {j}")
+            model.load_state_dict(best_model_state)
+            break
 
-ll = log_loss(testY_np, test_probs)
-roc_auc = roc_auc_score(testY_np, test_probs)
-brier = brier_score_loss(testY_np, test_probs)
-
-print(f'Log Loss: {ll:.4f}')
-print(f'ROC AUC: {roc_auc:.4f}')
-print(f'Brier Score: {brier:.4f}')
 
 
 
